@@ -37,4 +37,5 @@ class Arrow:
 
     def update(self):
         # Move the arrow
-        self.shape = [(x + self.velocity.x, y + self.velocity.y) for x, y in self.shape]
+        self.position += self.velocity
+        self.recalculateShape()
