@@ -10,8 +10,17 @@ dt = 0
 
 player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
 
-# Create an arrow
-arrow = Arrow(screen, player_pos, pygame.Vector2(0, 0), pygame.Vector2(0.1, -0.1), 0.1)
+# Create multiple arrows
+arrows = [
+    Arrow(
+        screen,
+        position=pygame.Vector2(
+            screen.get_width() / 2 + i * 30, screen.get_height() / 2
+        ),
+        scale=0.1,
+    )
+    for i in range(10)
+]
 
 while running:
     for event in pygame.event.get():
@@ -24,9 +33,10 @@ while running:
     mouse_pos: tuple[int, int] = pygame.mouse.get_pos()
     pygame.draw.circle(screen, "black", mouse_pos, 10)
 
-    arrow.draw()
-    arrow.drawPosition()
-    arrow.update(mouse_pos)
+    for arrow in arrows:
+        arrow.draw()
+        arrow.drawPosition()
+        arrow.update(mouse_pos)
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_q]:

@@ -8,8 +8,9 @@ class Arrow:
 
     screen: pygame.Surface
     position: pygame.Vector2
-    velocity: pygame.Vector2
-    acceleration: pygame.Vector2
+    max_speed: float = 15
+    velocity: pygame.Vector2 = field(default_factory=lambda: pygame.Vector2(0, 0))
+    acceleration: pygame.Vector2 = field(default_factory=lambda: pygame.Vector2(0, 0))
     shape: list = field(init=False)
     scale: float = 1
 
@@ -41,10 +42,11 @@ class Arrow:
     def update(self, targetPos: tuple[int, int]):
 
         acc: pygame.Vector2 = self.calculateAcceleration(targetPos)
-        self.velocity += pygame.Vector2.normalize(acc) * 0.8
+        self.velocity += pygame.Vector2.clamp_magnitude(acc, 0.8)
+        self.velocity = pygame.Vector2.clamp_magnitude(self.velocity, self.max_speed)
         self.position += self.velocity
 
-        self.checkEdges()
+        self.checkEdges(True)
         self.recalculateShape()
 
     def calculateAcceleration(self, targetPos) -> pygame.Vector2:
