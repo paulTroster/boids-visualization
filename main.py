@@ -11,7 +11,7 @@ dt = 0
 player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
 
 # Create an arrow
-arrow = Arrow(screen, player_pos, pygame.Vector2(5, 5), 0.1)
+arrow = Arrow(screen, player_pos, pygame.Vector2(0, 0), pygame.Vector2(0.1, -0.1), 0.1)
 
 while running:
     for event in pygame.event.get():
@@ -26,7 +26,7 @@ while running:
 
     arrow.draw()
     arrow.drawPosition()
-    arrow.update()
+    arrow.update(mouse_pos)
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_q]:

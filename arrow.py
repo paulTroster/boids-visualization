@@ -9,6 +9,7 @@ class Arrow:
     screen: pygame.Surface
     position: pygame.Vector2
     velocity: pygame.Vector2
+    acceleration: pygame.Vector2
     shape: list = field(init=False)
     scale: float = 1
 
@@ -37,11 +38,19 @@ class Arrow:
         # Draw the position of the Arrow for debugging
         pygame.draw.circle(self.screen, "red", self.position, 20 * self.scale)
 
-    def update(self):
-        # Move the arrow
+    def update(self, targetPos: tuple[int, int]):
+
+        acc: pygame.Vector2 = self.calculateAcceleration(targetPos)
+        self.velocity += pygame.Vector2.normalize(acc) * 0.8
         self.position += self.velocity
+
         self.checkEdges()
         self.recalculateShape()
+
+    def calculateAcceleration(self, targetPos) -> pygame.Vector2:
+        return pygame.Vector2(
+            targetPos[0] - self.position.x, targetPos[1] - self.position.y
+        )
 
     def checkEdges(self, hardEdges: bool = False):
         """
