@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import ClassVar
-from math import atan2
+from math import atan2, cos, sin
 import pygame
 
 
@@ -26,12 +26,6 @@ class Arrow:
     def __post_init__(self):
         self.recalculateShape()
 
-    def recalculateShape(self):
-        self.shape = [
-            (((x * self.scale) + self.position.x), ((y * self.scale) + self.position.y))
-            for x, y in self.BASE_SHAPE
-        ]
-
     def draw(self):
         # Draw an arrow
         pygame.draw.polygon(self.screen, "black", self.shape)
@@ -47,18 +41,39 @@ class Arrow:
         self.velocity = pygame.Vector2.clamp_magnitude(self.velocity, self.max_speed)
         self.position += self.velocity
 
+        self.rotatePoly()
         self.checkEdges(True)
-        self.recalculateShape()
+
+    def recalculateShape(self):
+        self.shape = [
+            (((x * self.scale) + self.position.x), ((y * self.scale) + self.position.y))
+            for x, y in self.BASE_SHAPE
+        ]
 
     def calculateAcceleration(self, targetPos) -> pygame.Vector2:
         return pygame.Vector2(
             targetPos[0] - self.position.x, targetPos[1] - self.position.y
         )
 
+    def rotatePoly(self):
+        angle = self.velocityToRotation()
+        self.shape = []
+        for x, y in self.BASE_SHAPE:
+            px, py = self.transformPoint(
+                pygame.Vector2(x * self.scale, y * self.scale), angle
+            )
+            self.shape.append((px + self.position.x, py + self.position.y))
+
+    def transformPoint(
+        self, point: pygame.Vector2, angle: float
+    ) -> tuple[float, float]:
+        x, y = point
+        cos_a = cos(angle)
+        sin_a = sin(angle)
+        return (x * cos_a - y * sin_a, x * sin_a + y * cos_a)
+
     def velocityToRotation(self) -> float:
         return atan2(self.velocity.y, self.velocity.x)
-
-    def transformPoint(self): ...
 
     def checkEdges(self, hardEdges: bool = False):
         """
