@@ -17,7 +17,7 @@ arrows = [
         position=pygame.Vector2(
             screen.get_width() / 2 + i * 30, screen.get_height() / 2
         ),
-        scale=0.1,
+        scale=0.2,
     )
     for i in range(10)
 ]

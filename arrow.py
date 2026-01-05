@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import ClassVar
+from math import atan2
 import pygame
 
 
@@ -14,20 +15,20 @@ class Arrow:
     shape: list = field(init=False)
     scale: float = 1
 
-    BASE_SHAPE: ClassVar[list] = [[0, 0], [300, 100], [0, 200], [50, 100], [0, 0]]
-    ARROW_OFFSET: ClassVar[pygame.Vector2] = pygame.Vector2(
-        150, 100
-    )  # half of the width and height of the shape
+    BASE_SHAPE: ClassVar[list] = [
+        [-150, -100],
+        [150, 0],
+        [-150, 100],
+        [-100, 0],
+        [-150, -100],
+    ]
 
     def __post_init__(self):
         self.recalculateShape()
 
     def recalculateShape(self):
         self.shape = [
-            (
-                ((x * self.scale) + self.position.x - self.ARROW_OFFSET.x * self.scale),
-                ((y * self.scale) + self.position.y - self.ARROW_OFFSET.y * self.scale),
-            )
+            (((x * self.scale) + self.position.x), ((y * self.scale) + self.position.y))
             for x, y in self.BASE_SHAPE
         ]
 
@@ -53,6 +54,11 @@ class Arrow:
         return pygame.Vector2(
             targetPos[0] - self.position.x, targetPos[1] - self.position.y
         )
+
+    def velocityToRotation(self) -> float:
+        return atan2(self.velocity.y, self.velocity.x)
+
+    def transformPoint(self): ...
 
     def checkEdges(self, hardEdges: bool = False):
         """
