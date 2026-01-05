@@ -5,6 +5,8 @@ import pygame
 
 @dataclass
 class Arrow:
+
+    screen: pygame.Surface
     position: pygame.Vector2
     velocity: pygame.Vector2
     shape: list = field(init=False)
@@ -27,15 +29,39 @@ class Arrow:
             for x, y in self.BASE_SHAPE
         ]
 
-    def draw(self, screen):
+    def draw(self):
         # Draw an arrow
-        pygame.draw.polygon(screen, "black", self.shape)
+        pygame.draw.polygon(self.screen, "black", self.shape)
 
-    def drawPosition(self, screen):
+    def drawPosition(self):
         # Draw the position of the Arrow for debugging
-        pygame.draw.circle(screen, "red", self.position, 20 * self.scale)
+        pygame.draw.circle(self.screen, "red", self.position, 20 * self.scale)
 
     def update(self):
         # Move the arrow
         self.position += self.velocity
+        self.checkEdges()
         self.recalculateShape()
+
+    def checkEdges(self, hardEdges: bool = False):
+        """
+        Check the edges and decide whether arrows bounce on edges or spawn on the other side
+        """
+        if hardEdges == False:
+            if self.position.x > self.screen.get_width():
+                self.position.x = 0
+
+            if self.position.x < 0:
+                self.position.x = self.screen.get_width()
+
+            if self.position.y > self.screen.get_height() or self.position.y < 0:
+                self.position.y = 0
+
+            if self.position.y < 0:
+                self.position.y = self.screen.get_height()
+        else:
+            if self.position.x > self.screen.get_width() or self.position.x < 0:
+                self.velocity.x = self.velocity.x * -1
+
+            if self.position.y > self.screen.get_height() or self.position.y < 0:
+                self.velocity.y = self.velocity.y * -1
