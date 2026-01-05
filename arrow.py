@@ -35,7 +35,6 @@ class Arrow:
         pygame.draw.circle(self.screen, "red", self.position, 20 * self.scale)
 
     def update(self, targetPos: tuple[int, int]):
-
         acc: pygame.Vector2 = self.calculateAcceleration(targetPos)
         self.velocity += pygame.Vector2.clamp_magnitude(acc, 0.8)
         self.velocity = pygame.Vector2.clamp_magnitude(self.velocity, self.max_speed)

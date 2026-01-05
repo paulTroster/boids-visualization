@@ -1,4 +1,5 @@
 import pygame
+from boid import BoidSystem
 from arrow import Arrow
 
 # pygame setup
@@ -10,17 +11,7 @@ dt = 0
 
 player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
 
-# Create multiple arrows
-arrows = [
-    Arrow(
-        screen,
-        position=pygame.Vector2(
-            screen.get_width() / 2 + i * 30, screen.get_height() / 2
-        ),
-        scale=0.2,
-    )
-    for i in range(2)
-]
+boidSystem = BoidSystem(10, screen)
 
 while running:
     for event in pygame.event.get():
@@ -33,10 +24,12 @@ while running:
     mouse_pos: tuple[int, int] = pygame.mouse.get_pos()
     pygame.draw.circle(screen, "black", mouse_pos, 10)
 
-    for arrow in arrows:
+    for arrow in boidSystem.arrows:
         arrow.draw()
         arrow.drawPosition()
         arrow.update(mouse_pos)
+
+    boidSystem.update()
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_q]:
