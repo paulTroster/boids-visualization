@@ -1,5 +1,5 @@
-# Example file showing a circle moving on screen
 import pygame
+from arrow import Arrow
 
 # pygame setup
 pygame.init()
@@ -8,10 +8,10 @@ clock = pygame.time.Clock()
 running = True
 dt = 0
 
-# Object points
-points = [[0, 0], [300, 100], [0, 200], [50, 100], [0, 0]]
-
 player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
+
+# Create an arrow
+arrow = Arrow(player_pos, pygame.Vector2(1, 1))
 
 while running:
     for event in pygame.event.get():
@@ -21,11 +21,8 @@ while running:
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("white")
 
-    # Draw an arrow
-    pygame.draw.polygon(screen, "black", points)
-
-    # Move the arrow
-    points = [(x + 1, y + 0) for x, y in points]
+    arrow.draw(screen)
+    arrow.update()
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_q]:
