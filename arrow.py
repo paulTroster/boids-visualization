@@ -117,7 +117,7 @@ class Arrow:
             if self.position.x < 0:
                 self.position.x = self.screen.get_width()
 
-            if self.position.y > self.screen.get_height() or self.position.y < 0:
+            if self.position.y > self.screen.get_height():
                 self.position.y = 0
 
             if self.position.y < 0:

@@ -1,2 +1,8 @@
 # Mac files
 .DS_Store
+
+# Python
+*.pyc
+*.pyo
+__pycache__/
+*.py[cod]
