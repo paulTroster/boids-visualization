@@ -17,8 +17,17 @@ class BoidSystem:
                 random.uniform(0, self.screen.get_width()),
                 random.uniform(0, self.screen.get_height()),
             )
+            
+            # Give random initial velocity
+            import math
+            angle = random.uniform(0, 2 * math.pi)
+            speed = random.uniform(5, 10)
+            initial_velocity = pygame.Vector2(
+                math.cos(angle) * speed,
+                math.sin(angle) * speed
+            )
 
-            arrow = Arrow(self.screen, position, scale=0.2)
+            arrow = Arrow(self.screen, position, scale=0.2, velocity=initial_velocity)
             self.arrows.append(arrow)
 
     def update(self, mouse_pos: tuple[int, int]):
@@ -45,8 +54,12 @@ class BoidSystem:
             if closest_other:
                 # Steer away from the closest other arrow
                 steer = arrow.position - closest_other.position
-                steer.normalize_ip()  # In-place normalization
-                arrow.applyForce(steer)
+                distance = steer.length()
+                if distance > 0:
+                    steer.normalize_ip()  # In-place normalization
+                    # Scale force by inverse distance (stronger when closer)
+                    force_magnitude = min(1.0 / (distance / 50), 0.5)
+                    arrow.applyForce(steer * force_magnitude)
 
     def findClosestInFov(
         self, current_arrow: Arrow, radius: int = 150, fov: int = 100, debug=False
