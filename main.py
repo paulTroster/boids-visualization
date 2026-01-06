@@ -11,7 +11,7 @@ dt = 0
 
 player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
 
-boidSystem = BoidSystem(10, screen)
+boidSystem = BoidSystem(3, screen)
 
 while running:
     for event in pygame.event.get():

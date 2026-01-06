@@ -24,9 +24,6 @@ class BoidSystem:
     def update(self, mouse_pos: tuple[int, int]):
         # Update Grouping and distancing of entity
         self.personalSpace()
-        self.draw_sector_transparent(
-            self.screen, self.arrows[0].position, self.arrows[0].velocity, 150, 100
-        )
 
         for arrow in self.arrows:
             arrow.draw()
@@ -37,10 +34,34 @@ class BoidSystem:
         for arrow in self.arrows:
             arrow.applyForce(force)
 
-    def personalSpace(self) -> None:
+    def personalSpace(self, radius: int = 100, fov: int = 100) -> None:
         arrow = self.arrows[0]
+        center = arrow.position
+        heading = arrow.velocity
 
-        # Check in a certain area around the arrow
+        if heading.length() != 0:
+            heading = heading.normalize()
+        else:
+            self.draw_sector_transparent(
+                self.screen, center, heading, radius, fov, detected=False
+            )
+
+        for other in self.arrows[1:]:
+            to_other = other.position - center
+            if to_other.length() > radius:
+                self.draw_sector_transparent(
+                    self.screen, center, heading, radius, fov, detected=False
+                )
+                continue
+            angle = math.degrees(math.acos(heading.dot(to_other.normalize())))
+            if angle < fov / 2:
+                self.draw_sector_transparent(
+                    self.screen, center, heading, radius, fov, detected=True
+                )
+            else:
+                self.draw_sector_transparent(
+                    self.screen, center, heading, radius, fov, detected=False
+                )
 
     def draw_sector_transparent(
         self, surface, center, heading, radius, fov_deg, detected=False, num_points=30
