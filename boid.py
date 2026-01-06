@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from arrow import Arrow
 import random
 import pygame
+import math
 
 
 @dataclass
@@ -23,32 +24,41 @@ class BoidSystem:
     def update(self, mouse_pos: tuple[int, int]):
         # Update Grouping and distancing of entity
         self.personalSpace()
-        self.debugVisuals()
+        self.draw_sector_transparent(
+            self.screen, self.arrows[0].position, self.arrows[0].velocity, 150, 100
+        )
 
         for arrow in self.arrows:
             arrow.draw()
             arrow.drawPosition()
-            arrow.update(mouse_pos)
+            arrow.update(mouse_pos, targetActive=True)
 
     def applyForceToAll(self, force: pygame.Vector2):
         for arrow in self.arrows:
             arrow.applyForce(force)
 
     def personalSpace(self) -> None:
-        for arrow in self.arrows:
-            ...
+        arrow = self.arrows[0]
 
-    def debugVisuals(self):
-        # Draw a transparent circle around the first arrow to represent its personal space
-        first_arrow = self.arrows[0]
-        personal_space_radius = 100
-        transparent_surface = pygame.Surface(
-            (self.screen.get_width(), self.screen.get_height()), pygame.SRCALPHA
-        )
-        pygame.draw.circle(
-            transparent_surface,
-            (0, 0, 255, 50),  # RGBA color with alpha for transparency
-            (int(first_arrow.position.x), int(first_arrow.position.y)),
-            personal_space_radius,
-        )
-        self.screen.blit(transparent_surface, (0, 0))
+        # Check in a certain area around the arrow
+
+    def draw_sector_transparent(
+        self, surface, center, heading, radius, fov_deg, detected=False, num_points=30
+    ):
+        # Set alpha based on detection
+        alpha = 50 if not detected else 120
+        color = (0, 0, 255, alpha)  # RGBA
+
+        # Create transparent surface
+        sector_surface = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
+
+        angle_start = math.atan2(heading.y, heading.x) - math.radians(fov_deg / 2)
+        angle_end = math.atan2(heading.y, heading.x) + math.radians(fov_deg / 2)
+        points = [center]
+        for i in range(num_points + 1):
+            angle = angle_start + (angle_end - angle_start) * i / num_points
+            x = center.x + radius * math.cos(angle)
+            y = center.y + radius * math.sin(angle)
+            points.append((x, y))
+        pygame.draw.polygon(sector_surface, color, points, 0)  # 0 for filled
+        surface.blit(sector_surface, (0, 0))

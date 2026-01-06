@@ -31,7 +31,7 @@ while running:
         running = False
 
     if pygame.mouse.get_pressed()[0] == True:
-        boidSystem.applyForceToAll(pygame.Vector2(0, 0.01))  # Add gravitation
+        boidSystem.applyForceToAll(pygame.Vector2(0, 0.1))  # Add gravitation
 
     # flip() the display to put your work on screen
     pygame.display.flip()
