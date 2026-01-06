@@ -55,7 +55,7 @@ class Arrow:
         self.acceleration = pygame.Vector2(0, 0)
 
         self.rotatePoly()
-        self.checkEdges(hardEdges=True)
+        self.checkEdges(hardEdges=False)
 
     def applyForce(self, force: pygame.Vector2):
         self.acceleration += force

@@ -1,4 +1,6 @@
 import pygame
+import random
+import math
 from boid import BoidSystem
 from arrow import Arrow
 
@@ -13,6 +15,11 @@ player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
 
 boidSystem = BoidSystem(15, screen)
 
+# Wind variables
+wind_change_timer = 0
+wind_direction = pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize()
+wind_strength = random.uniform(0.05, 0.2)
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -23,6 +30,17 @@ while running:
 
     # Get mouse position in order to let the arrows target it
     mouse_pos: tuple[int, int] = pygame.mouse.get_pos()
+
+    # Change wind direction randomly every 2-5 seconds
+    wind_change_timer += dt
+    if wind_change_timer > random.uniform(2, 5):
+        wind_change_timer = 0
+        angle = random.uniform(0, 2 * math.pi)
+        wind_direction = pygame.Vector2(math.cos(angle), math.sin(angle))
+        wind_strength = random.uniform(0.05, 0.2)
+    
+    # Apply wind force
+    boidSystem.applyForceToAll(wind_direction * wind_strength)
 
     boidSystem.update(mouse_pos)
 

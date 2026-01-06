@@ -28,7 +28,7 @@ class BoidSystem:
         for arrow in self.arrows:
             arrow.draw()
             arrow.drawPosition()
-            arrow.update(mouse_pos, targetActive=True)
+            arrow.update(mouse_pos, targetActive=False)
 
     def applyForceToAll(self, force: pygame.Vector2):
         for arrow in self.arrows:
