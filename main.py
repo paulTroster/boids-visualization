@@ -21,8 +21,8 @@ while running:
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("white")
 
+    # Get mouse position in order to let the arrows target it
     mouse_pos: tuple[int, int] = pygame.mouse.get_pos()
-    pygame.draw.circle(screen, "black", mouse_pos, 10)
 
     boidSystem.update(mouse_pos)
 
@@ -30,7 +30,8 @@ while running:
     if keys[pygame.K_q]:
         running = False
 
-    if pygame.mouse.get_pressed()[0] == True:
+    mouse = pygame.mouse.get_pressed()[0]
+    if mouse == True:
         pygame.draw.circle(screen, "red", player_pos, 100)
         boidSystem.applyForceToAll(pygame.Vector2(0, 0.01))  # Add gravitation
 
