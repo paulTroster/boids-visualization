@@ -48,7 +48,7 @@ class Arrow:
             self.position += self.velocity
 
         self.rotatePoly()
-        self.checkEdges(True)
+        self.checkEdges(hardEdges=True)
 
     def applyForce(self, force: pygame.Vector2):
         self.acceleration += force
@@ -84,7 +84,7 @@ class Arrow:
     def velocityToRotation(self) -> float:
         return atan2(self.velocity.y, self.velocity.x)
 
-    def checkEdges(self, hardEdges: bool = True):
+    def checkEdges(self, hardEdges: bool = False):
         """
         Check the edges and decide whether arrows bounce on edges or spawn on the other side
         """
@@ -106,3 +106,15 @@ class Arrow:
 
             if self.position.y > self.screen.get_height() or self.position.y < 0:
                 self.velocity.y = self.velocity.y * -1
+
+            if self.position.x > self.screen.get_width():
+                self.position.x = self.screen.get_width()
+
+            if self.position.x < 0:
+                self.position.x = 0
+
+            if self.position.y > self.screen.get_height() or self.position.y < 0:
+                self.position.y = self.screen.get_height()
+
+            if self.position.y < 0:
+                self.position.y = 0

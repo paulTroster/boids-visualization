@@ -30,9 +30,7 @@ while running:
     if keys[pygame.K_q]:
         running = False
 
-    mouse = pygame.mouse.get_pressed()[0]
-    if mouse == True:
-        pygame.draw.circle(screen, "red", player_pos, 100)
+    if pygame.mouse.get_pressed()[0] == True:
         boidSystem.applyForceToAll(pygame.Vector2(0, 0.01))  # Add gravitation
 
     # flip() the display to put your work on screen
