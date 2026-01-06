@@ -24,16 +24,15 @@ while running:
     mouse_pos: tuple[int, int] = pygame.mouse.get_pos()
     pygame.draw.circle(screen, "black", mouse_pos, 10)
 
-    for arrow in boidSystem.arrows:
-        arrow.draw()
-        arrow.drawPosition()
-        arrow.update(mouse_pos)
-
-    boidSystem.update()
+    boidSystem.update(mouse_pos)
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_q]:
         running = False
+
+    if pygame.mouse.get_pressed()[0] == True:
+        pygame.draw.circle(screen, "red", player_pos, 100)
+        boidSystem.applyForceToAll(pygame.Vector2(0, 0.01))  # Add gravitation
 
     # flip() the display to put your work on screen
     pygame.display.flip()

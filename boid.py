@@ -20,10 +20,19 @@ class BoidSystem:
             arrow = Arrow(self.screen, position, scale=0.2)
             self.arrows.append(arrow)
 
-    def update(self):
+    def update(self, mouse_pos: tuple[int, int]):
         # Update Grouping and distancing of entity
         self.personalSpace()
         self.debugVisuals()
+
+        for arrow in self.arrows:
+            arrow.draw()
+            arrow.drawPosition()
+            arrow.update(mouse_pos)
+
+    def applyForceToAll(self, force: pygame.Vector2):
+        for arrow in self.arrows:
+            arrow.applyForce(force)
 
     def personalSpace(self) -> None:
         for arrow in self.arrows:

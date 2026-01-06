@@ -34,14 +34,24 @@ class Arrow:
         # Draw the position of the Arrow for debugging
         pygame.draw.circle(self.screen, "red", self.position, 20 * self.scale)
 
-    def update(self, targetPos: tuple[int, int]):
-        acc: pygame.Vector2 = self.calculateAcceleration(targetPos)
-        self.velocity += pygame.Vector2.clamp_magnitude(acc, 0.8)
-        self.velocity = pygame.Vector2.clamp_magnitude(self.velocity, self.max_speed)
-        self.position += self.velocity
+    def update(self, targetPos: tuple[int, int], targetActive=False):
+        if targetActive:
+            # Set the Velocity towards the target
+            acc: pygame.Vector2 = self.calculateAcceleration(targetPos)
+            self.velocity += pygame.Vector2.clamp_magnitude(acc, 0.8)
+            self.velocity = pygame.Vector2.clamp_magnitude(
+                self.velocity, self.max_speed
+            )
+            self.position += self.velocity
+        else:
+            self.velocity += self.acceleration
+            self.position += self.velocity
 
         self.rotatePoly()
         self.checkEdges(True)
+
+    def applyForce(self, force: pygame.Vector2):
+        self.acceleration += force
 
     def recalculateShape(self):
         self.shape = [
@@ -74,7 +84,7 @@ class Arrow:
     def velocityToRotation(self) -> float:
         return atan2(self.velocity.y, self.velocity.x)
 
-    def checkEdges(self, hardEdges: bool = False):
+    def checkEdges(self, hardEdges: bool = True):
         """
         Check the edges and decide whether arrows bounce on edges or spawn on the other side
         """
