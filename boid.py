@@ -38,67 +38,73 @@ class BoidSystem:
         for idx, arrow in enumerate(self.arrows):
             # Only enable debug drawing for the first arrow
             debug = idx == 0
-            others = self.checkOthersFov(current_arrow=arrow, debug=debug)
-
-            if not others:
-                continue
-            # Find the closest other arrow within the field of view
-            closest_other = None
-            min_distance = float("inf")
-            for other in others:
-                distance_vec = other.position - arrow.position
-                distance = distance_vec.length()
-                if distance < min_distance:
-                    min_distance = distance
-                    closest_other = other
+            closest_other, detected = self.findClosestInFov(
+                current_arrow=arrow, debug=debug
+            )
 
             if closest_other:
                 # Steer away from the closest other arrow
                 steer = arrow.position - closest_other.position
-                if steer.length() > 0:
-                    steer = steer.normalize()
-                arrow.applyForce(steer * 1)
+                steer.normalize_ip()  # In-place normalization
+                arrow.applyForce(steer)
 
-    def checkOthersFov(
-        self, current_arrow: Arrow, radius: int = 150, fov: int = 360, debug=False
-    ) -> list[Arrow]:
+    def findClosestInFov(
+        self, current_arrow: Arrow, radius: int = 150, fov: int = 100, debug=False
+    ) -> tuple[Arrow | None, bool]:
         center = current_arrow.position
         heading = current_arrow.velocity
+        heading_length_sq = heading.length_squared()
 
-        others: list[Arrow] = []
-
-        if heading.length() != 0:
-            heading = heading.normalize()
-        else:
+        if heading_length_sq == 0:
             if debug:
                 self.draw_sector_transparent(
-                    self.screen, center, heading, radius, fov, detected=False
+                    self.screen,
+                    center,
+                    pygame.Vector2(1, 0),
+                    radius,
+                    fov,
+                    detected=False,
                 )
+            return None, False
+
+        heading = heading / math.sqrt(
+            heading_length_sq
+        )  # Normalize using cached length_squared
+        radius_sq = radius * radius
+        fov_half = fov / 2
+
+        closest_other = None
+        min_distance_sq = float("inf")
+        detected = False
 
         for other in self.arrows:
             if other is current_arrow:
                 continue
+
             to_other = other.position - center
+            distance_sq = to_other.length_squared()
 
-            if to_other.length() > radius:
-                if debug:
-                    self.draw_sector_transparent(
-                        self.screen, center, heading, radius, fov, detected=False
-                    )
-            angle = math.degrees(math.acos(heading.dot(to_other.normalize())))
+            # Early exit if outside radius
+            if distance_sq > radius_sq:
+                continue
 
-            if angle < fov / 2:
-                if debug:
-                    self.draw_sector_transparent(
-                        self.screen, center, heading, radius, fov, detected=True
-                    )
-                others.append(other)
-            else:
-                if debug:
-                    self.draw_sector_transparent(
-                        self.screen, center, heading, radius, fov, detected=False
-                    )
-        return others
+            # Check FOV
+            distance = math.sqrt(distance_sq)
+            to_other_norm = to_other / distance
+            angle = math.degrees(math.acos(max(-1, min(1, heading.dot(to_other_norm)))))
+
+            if angle < fov_half:
+                detected = True
+                if distance_sq < min_distance_sq:
+                    min_distance_sq = distance_sq
+                    closest_other = other
+
+        if debug:
+            self.draw_sector_transparent(
+                self.screen, center, heading, radius, fov, detected=detected
+            )
+
+        return closest_other, detected
 
     def draw_sector_transparent(
         self, surface, center, heading, radius, fov_deg, detected=False, num_points=30
