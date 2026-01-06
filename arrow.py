@@ -39,6 +39,10 @@ class Arrow:
             # Set the Velocity towards the target
             acc: pygame.Vector2 = self.calculateAcceleration(targetPos)
             self.velocity += pygame.Vector2.clamp_magnitude(acc, 0.8)
+            
+            # Apply accumulated forces (like avoidance)
+            self.velocity += self.acceleration
+            
             self.velocity = pygame.Vector2.clamp_magnitude(
                 self.velocity, self.max_speed
             )
@@ -46,6 +50,9 @@ class Arrow:
         else:
             self.velocity += self.acceleration
             self.position += self.velocity
+
+        # Reset acceleration for next frame
+        self.acceleration = pygame.Vector2(0, 0)
 
         self.rotatePoly()
         self.checkEdges(hardEdges=True)

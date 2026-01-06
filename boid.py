@@ -34,34 +34,71 @@ class BoidSystem:
         for arrow in self.arrows:
             arrow.applyForce(force)
 
-    def personalSpace(self, radius: int = 100, fov: int = 100) -> None:
-        arrow = self.arrows[0]
-        center = arrow.position
-        heading = arrow.velocity
+    def personalSpace(self):
+        for idx, arrow in enumerate(self.arrows):
+            # Only enable debug drawing for the first arrow
+            debug = idx == 0
+            others = self.checkOthersFov(current_arrow=arrow, debug=debug)
+
+            if not others:
+                continue
+            # Find the closest other arrow within the field of view
+            closest_other = None
+            min_distance = float("inf")
+            for other in others:
+                distance_vec = other.position - arrow.position
+                distance = distance_vec.length()
+                if distance < min_distance:
+                    min_distance = distance
+                    closest_other = other
+
+            if closest_other:
+                # Steer away from the closest other arrow
+                steer = arrow.position - closest_other.position
+                if steer.length() > 0:
+                    steer = steer.normalize()
+                arrow.applyForce(steer * 1)
+
+    def checkOthersFov(
+        self, current_arrow: Arrow, radius: int = 150, fov: int = 360, debug=False
+    ) -> list[Arrow]:
+        center = current_arrow.position
+        heading = current_arrow.velocity
+
+        others: list[Arrow] = []
 
         if heading.length() != 0:
             heading = heading.normalize()
         else:
-            self.draw_sector_transparent(
-                self.screen, center, heading, radius, fov, detected=False
-            )
+            if debug:
+                self.draw_sector_transparent(
+                    self.screen, center, heading, radius, fov, detected=False
+                )
 
-        for other in self.arrows[1:]:
-            to_other = other.position - center
-            if to_other.length() > radius:
-                self.draw_sector_transparent(
-                    self.screen, center, heading, radius, fov, detected=False
-                )
+        for other in self.arrows:
+            if other is current_arrow:
                 continue
+            to_other = other.position - center
+
+            if to_other.length() > radius:
+                if debug:
+                    self.draw_sector_transparent(
+                        self.screen, center, heading, radius, fov, detected=False
+                    )
             angle = math.degrees(math.acos(heading.dot(to_other.normalize())))
+
             if angle < fov / 2:
-                self.draw_sector_transparent(
-                    self.screen, center, heading, radius, fov, detected=True
-                )
+                if debug:
+                    self.draw_sector_transparent(
+                        self.screen, center, heading, radius, fov, detected=True
+                    )
+                others.append(other)
             else:
-                self.draw_sector_transparent(
-                    self.screen, center, heading, radius, fov, detected=False
-                )
+                if debug:
+                    self.draw_sector_transparent(
+                        self.screen, center, heading, radius, fov, detected=False
+                    )
+        return others
 
     def draw_sector_transparent(
         self, surface, center, heading, radius, fov_deg, detected=False, num_points=30
