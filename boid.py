@@ -10,6 +10,10 @@ class BoidSystem:
     num_arrows: int
     screen: pygame.Surface
     arrows: list[Arrow] = field(default_factory=lambda: [])
+    radius: int = 150
+    fov: int = 150
+    debug: bool = True
+    debug_midpoint: pygame.Vector2 | None = field(default=None, init=False)
 
     def __post_init__(self):
         for _ in range(self.num_arrows):
@@ -45,6 +49,10 @@ class BoidSystem:
             arrow.draw()
             arrow.drawPosition()
             arrow.update(mouse_pos, targetActive=False)
+        
+        # Draw debug visualizations on top
+        if self.debug and self.debug_midpoint:
+            pygame.draw.circle(self.screen, "green", self.debug_midpoint, 10)
 
     def applyForceToAll(self, force: pygame.Vector2):
         for arrow in self.arrows:
@@ -68,12 +76,14 @@ class BoidSystem:
                     force_magnitude = min(1.0 / (distance / 50), 0.5)
                     arrow.applyForce(steer * force_magnitude)
 
-    def applyGroupCenter(self, radius: int = 150, fov: int = 100, debug=True) -> None:
+    def applyGroupCenter(self) -> None:
         for idx, arrow in enumerate(self.arrows):
             # Get all arrows in pov
-            others = self.findArrowsInFov(arrow, radius, fov)
+            others = self.findArrowsInFov(arrow)
 
             if len(others) == 0:
+                if self.debug and idx == 0:
+                    self.debug_midpoint = None
                 continue
 
             # calculate midpoint of all vectors
@@ -81,8 +91,8 @@ class BoidSystem:
                 [arrow.position for arrow in others], pygame.Vector2(0, 0)
             ) / len(others)
 
-            if debug and idx == 0:
-                pygame.draw.circle(self.screen, "green", midpoint, 10)
+            if self.debug and idx == 0:
+                self.debug_midpoint = midpoint
 
             direction = midpoint - arrow.position
             distance = direction.length()
@@ -94,7 +104,7 @@ class BoidSystem:
                 arrow.applyForce(direction * force_magnitude)
 
     def findClosestInFov(
-        self, current_arrow: Arrow, radius: int = 150, fov: int = 100, debug=False
+        self, current_arrow: Arrow, debug=False
     ) -> tuple[Arrow | None, bool]:
         center = current_arrow.position
         heading = current_arrow.velocity
@@ -106,8 +116,8 @@ class BoidSystem:
                     self.screen,
                     center,
                     pygame.Vector2(1, 0),
-                    radius,
-                    fov,
+                    self.radius,
+                    self.fov,
                     detected=False,
                 )
             return None, False
@@ -120,7 +130,7 @@ class BoidSystem:
         min_distance_sq = float("inf")
         detected = False
 
-        for other in self.findArrowsInFov(current_arrow, radius, fov):
+        for other in self.findArrowsInFov(current_arrow):
 
             to_other = other.position - center
             distance_sq = to_other.length_squared()
@@ -132,25 +142,25 @@ class BoidSystem:
 
         if debug:
             self.draw_sector_transparent(
-                self.screen, center, heading, radius, fov, detected=detected
+                self.screen, center, heading, self.radius, self.fov, detected=detected
             )
 
         return closest_other, detected
 
     def findArrowsInFov(
-        self, current_arrow: Arrow, radius: int, fov: int
+        self, current_arrow: Arrow
     ) -> list[Arrow]:
 
         center = current_arrow.position
         heading = current_arrow.velocity
         heading_length_sq = heading.length_squared()
-        radius_sq = radius * radius
+        radius_sq = self.radius * self.radius
 
         heading = heading / math.sqrt(
             heading_length_sq
         )  # Normalize using cached length_squared
 
-        fov_half = fov / 2
+        fov_half = self.fov / 2
 
         in_fov = []
 
