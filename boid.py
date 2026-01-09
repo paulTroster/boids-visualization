@@ -17,14 +17,14 @@ class BoidSystem:
                 random.uniform(0, self.screen.get_width()),
                 random.uniform(0, self.screen.get_height()),
             )
-            
+
             # Give random initial velocity
             import math
+
             angle = random.uniform(0, 2 * math.pi)
             speed = random.uniform(5, 10)
             initial_velocity = pygame.Vector2(
-                math.cos(angle) * speed,
-                math.sin(angle) * speed
+                math.cos(angle) * speed, math.sin(angle) * speed
             )
 
             arrow = Arrow(self.screen, position, scale=0.2, velocity=initial_velocity)
@@ -61,6 +61,12 @@ class BoidSystem:
                     force_magnitude = min(1.0 / (distance / 50), 0.5)
                     arrow.applyForce(steer * force_magnitude)
 
+    def findGroupCenter(self):
+        # Get all arrows in pov
+        self.findArrowsInRadius()
+        # calculate mittelpunkt of all vectors
+        # Apply force towards this direction
+
     def findClosestInFov(
         self, current_arrow: Arrow, radius: int = 150, fov: int = 100, debug=False
     ) -> tuple[Arrow | None, bool]:
@@ -90,16 +96,10 @@ class BoidSystem:
         min_distance_sq = float("inf")
         detected = False
 
-        for other in self.arrows:
-            if other is current_arrow:
-                continue
+        for other in self.findArrowsInRadius(current_arrow, radius):
 
             to_other = other.position - center
             distance_sq = to_other.length_squared()
-
-            # Early exit if outside radius
-            if distance_sq > radius_sq:
-                continue
 
             # Check FOV
             distance = math.sqrt(distance_sq)
@@ -118,6 +118,28 @@ class BoidSystem:
             )
 
         return closest_other, detected
+
+    def findArrowsInRadius(self, current_arrow: Arrow, radius: int) -> list[Arrow]:
+
+        center = current_arrow.position
+        radius_sq = radius * radius
+
+        in_radius = []
+
+        for other in self.arrows:
+            if other is current_arrow:
+                continue
+
+            to_other = other.position - center
+            distance_sq = to_other.length_squared()
+
+            # Early exit if outside radius
+            if distance_sq > radius_sq:
+                continue
+            else:
+                in_radius.append(other)
+
+        return in_radius
 
     def draw_sector_transparent(
         self, surface, center, heading, radius, fov_deg, detected=False, num_points=30
