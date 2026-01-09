@@ -49,7 +49,12 @@ class Arrow:
             self.position += self.velocity
         else:
             # Clamp acceleration to prevent sudden jerks
-            clamped_acceleration = pygame.Vector2.clamp_magnitude(self.acceleration, 0.5)
+            if self.acceleration.length() > 0:
+                clamped_acceleration = pygame.Vector2.clamp_magnitude(
+                    self.acceleration, 0.5
+                )
+            else:
+                clamped_acceleration = pygame.Vector2(0, 0)
             self.velocity += clamped_acceleration
             
             # Ensure minimum velocity to prevent flickering
