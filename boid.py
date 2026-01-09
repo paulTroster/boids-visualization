@@ -22,12 +22,18 @@ class BoidSystem:
             import math
 
             angle = random.uniform(0, 2 * math.pi)
-            speed = random.uniform(5, 10)
+            speed = random.uniform(1, 3)
             initial_velocity = pygame.Vector2(
                 math.cos(angle) * speed, math.sin(angle) * speed
             )
 
-            arrow = Arrow(self.screen, position, scale=0.2, velocity=initial_velocity)
+            arrow = Arrow(
+                self.screen,
+                position,
+                scale=0.2,
+                velocity=initial_velocity,
+                acceleration=pygame.Vector2(1, 1),
+            )
             self.arrows.append(arrow)
 
     def update(self, mouse_pos: tuple[int, int]):
@@ -62,7 +68,7 @@ class BoidSystem:
                     force_magnitude = min(1.0 / (distance / 50), 0.5)
                     arrow.applyForce(steer * force_magnitude)
 
-    def applyGroupCenter(self, radius: int = 150, fov: int = 100) -> None:
+    def applyGroupCenter(self, radius: int = 150, fov: int = 100, debug=True) -> None:
         for idx, arrow in enumerate(self.arrows):
             # Get all arrows in pov
             others = self.findArrowsInFov(arrow, radius, fov)
@@ -80,15 +86,12 @@ class BoidSystem:
 
             direction = midpoint - arrow.position
             distance = direction.length()
-            
+
             if distance > 0:
                 direction.normalize_ip()
                 # Scale force - stronger when further, but capped
                 force_magnitude = min(distance / 200, 0.3)
                 arrow.applyForce(direction * force_magnitude)
-            
-            # Apply force towards this direction
-            arrow.applyForce(direction)
 
     def findClosestInFov(
         self, current_arrow: Arrow, radius: int = 150, fov: int = 100, debug=False
