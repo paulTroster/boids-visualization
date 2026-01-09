@@ -68,15 +68,25 @@ class BoidSystem:
             others = self.findArrowsInFov(arrow, radius, fov)
 
             if len(others) == 0:
-                return
+                continue
 
             # calculate midpoint of all vectors
             midpoint = sum(
                 [arrow.position for arrow in others], pygame.Vector2(0, 0)
             ) / len(others)
 
-            direction = midpoint - arrow.position
+            if debug and idx == 0:
+                pygame.draw.circle(self.screen, "green", midpoint, 10)
 
+            direction = midpoint - arrow.position
+            distance = direction.length()
+            
+            if distance > 0:
+                direction.normalize_ip()
+                # Scale force - stronger when further, but capped
+                force_magnitude = min(distance / 200, 0.3)
+                arrow.applyForce(direction * force_magnitude)
+            
             # Apply force towards this direction
             arrow.applyForce(direction)
 
