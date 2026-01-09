@@ -96,21 +96,15 @@ class BoidSystem:
         min_distance_sq = float("inf")
         detected = False
 
-        for other in self.findArrowsInRadius(current_arrow, radius):
+        for other in self.findArrowsInFov(current_arrow, radius, fov):
 
             to_other = other.position - center
             distance_sq = to_other.length_squared()
 
-            # Check FOV
-            distance = math.sqrt(distance_sq)
-            to_other_norm = to_other / distance
-            angle = math.degrees(math.acos(max(-1, min(1, heading.dot(to_other_norm)))))
-
-            if angle < fov_half:
-                detected = True
-                if distance_sq < min_distance_sq:
-                    min_distance_sq = distance_sq
-                    closest_other = other
+            detected = True
+            if distance_sq < min_distance_sq:
+                min_distance_sq = distance_sq
+                closest_other = other
 
         if debug:
             self.draw_sector_transparent(
@@ -119,12 +113,17 @@ class BoidSystem:
 
         return closest_other, detected
 
-    def findArrowsInRadius(self, current_arrow: Arrow, radius: int) -> list[Arrow]:
+    def findArrowsInFov(
+        self, current_arrow: Arrow, radius: int, fov: int
+    ) -> list[Arrow]:
 
         center = current_arrow.position
+        heading = current_arrow.velocity
         radius_sq = radius * radius
 
-        in_radius = []
+        fov_half = fov / 2
+
+        in_fov = []
 
         for other in self.arrows:
             if other is current_arrow:
@@ -136,10 +135,16 @@ class BoidSystem:
             # Early exit if outside radius
             if distance_sq > radius_sq:
                 continue
-            else:
-                in_radius.append(other)
 
-        return in_radius
+            # Check FOV
+            distance = math.sqrt(distance_sq)
+            to_other_norm = to_other / distance
+            angle = math.degrees(math.acos(max(-1, min(1, heading.dot(to_other_norm)))))
+
+            if angle < fov_half:
+                in_fov.append(other)
+
+        return in_fov
 
     def draw_sector_transparent(
         self, surface, center, heading, radius, fov_deg, detected=False, num_points=30
