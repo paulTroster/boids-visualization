@@ -34,7 +34,7 @@ class BoidSystem:
             arrow = Arrow(
                 self.screen,
                 position,
-                scale=0.2,
+                scale=0.1,
                 velocity=initial_velocity,
                 acceleration=pygame.Vector2(1, 1),
             )
