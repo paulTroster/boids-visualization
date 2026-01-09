@@ -33,6 +33,7 @@ class BoidSystem:
     def update(self, mouse_pos: tuple[int, int]):
         # Update Grouping and distancing of entity
         self.personalSpace()
+        self.applyGroupCenter()
 
         for arrow in self.arrows:
             arrow.draw()
@@ -61,11 +62,23 @@ class BoidSystem:
                     force_magnitude = min(1.0 / (distance / 50), 0.5)
                     arrow.applyForce(steer * force_magnitude)
 
-    def findGroupCenter(self):
-        # Get all arrows in pov
-        self.findArrowsInRadius()
-        # calculate mittelpunkt of all vectors
-        # Apply force towards this direction
+    def applyGroupCenter(self, radius: int = 150, fov: int = 100) -> None:
+        for idx, arrow in enumerate(self.arrows):
+            # Get all arrows in pov
+            others = self.findArrowsInFov(arrow, radius, fov)
+
+            if len(others) == 0:
+                return
+
+            # calculate midpoint of all vectors
+            midpoint = sum(
+                [arrow.position for arrow in others], pygame.Vector2(0, 0)
+            ) / len(others)
+
+            direction = midpoint - arrow.position
+
+            # Apply force towards this direction
+            arrow.applyForce(direction)
 
     def findClosestInFov(
         self, current_arrow: Arrow, radius: int = 150, fov: int = 100, debug=False
@@ -89,8 +102,6 @@ class BoidSystem:
         heading = heading / math.sqrt(
             heading_length_sq
         )  # Normalize using cached length_squared
-        radius_sq = radius * radius
-        fov_half = fov / 2
 
         closest_other = None
         min_distance_sq = float("inf")
@@ -119,7 +130,12 @@ class BoidSystem:
 
         center = current_arrow.position
         heading = current_arrow.velocity
+        heading_length_sq = heading.length_squared()
         radius_sq = radius * radius
+
+        heading = heading / math.sqrt(
+            heading_length_sq
+        )  # Normalize using cached length_squared
 
         fov_half = fov / 2
 
