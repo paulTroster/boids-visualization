@@ -15,14 +15,6 @@ player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
 
 boidSystem = BoidSystem(15, screen)
 
-# Wind variables
-wind_change_timer = 0
-wind_change_interval = random.uniform(3, 6)
-current_wind_direction = pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize()
-target_wind_direction = pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize()
-current_wind_strength = random.uniform(0.05, 0.2)
-target_wind_strength = random.uniform(0.05, 0.2)
-
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:

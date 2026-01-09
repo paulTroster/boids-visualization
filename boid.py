@@ -44,12 +44,13 @@ class BoidSystem:
         # Update Grouping and distancing of entity
         self.personalSpace()
         self.applyGroupCenter()
+        self.alignSteering()
 
         for arrow in self.arrows:
             arrow.draw()
             arrow.drawPosition()
             arrow.update(mouse_pos, targetActive=False)
-        
+
         # Draw debug visualizations on top
         if self.debug and self.debug_midpoint:
             pygame.draw.circle(self.screen, "green", self.debug_midpoint, 10)
@@ -103,6 +104,18 @@ class BoidSystem:
                 force_magnitude = min(distance / 200, 0.3)
                 arrow.applyForce(direction * force_magnitude)
 
+    def alignSteering(self):
+        for arrow in self.arrows:
+            others = self.findArrowsInFov(arrow)
+
+            directions = [arrow.velocity for arrow in others if arrow is not self]
+            if directions:
+                average_direction = sum(directions, pygame.Vector2(0, 0))
+                if average_direction.length() > 0:
+                    average_direction = average_direction.normalize()
+                    strength = 0.05
+                    arrow.applyForce(average_direction * strength)
+
     def findClosestInFov(
         self, current_arrow: Arrow, debug=False
     ) -> tuple[Arrow | None, bool]:
@@ -147,9 +160,7 @@ class BoidSystem:
 
         return closest_other, detected
 
-    def findArrowsInFov(
-        self, current_arrow: Arrow
-    ) -> list[Arrow]:
+    def findArrowsInFov(self, current_arrow: Arrow) -> list[Arrow]:
 
         center = current_arrow.position
         heading = current_arrow.velocity
