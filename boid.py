@@ -40,11 +40,16 @@ class BoidSystem:
             )
             self.arrows.append(arrow)
 
-    def update(self, mouse_pos: tuple[int, int]):
+    def update(self, mouse_pos: tuple[int, int], params: dict[str, float] | None = None):
+        params = params or {}
+        alignment_weight = params.get("alignment", 1.0)
+        cohesion_weight = params.get("cohesion", 1.0)
+        separation_weight = params.get("separation", 1.0)
+
         # Update Grouping and distancing of entity
-        self.personalSpace()
-        self.applyGroupCenter()
-        self.alignSteering()
+        self.personalSpace(separation_weight)
+        self.applyGroupCenter(cohesion_weight)
+        self.alignSteering(alignment_weight)
 
         for arrow in self.arrows:
             arrow.draw()
@@ -59,7 +64,7 @@ class BoidSystem:
         for arrow in self.arrows:
             arrow.applyForce(force)
 
-    def personalSpace(self):
+    def personalSpace(self, separation_weight: float):
         for idx, arrow in enumerate(self.arrows):
             # Only enable debug drawing for the first arrow
             debug = idx == 0
@@ -74,10 +79,10 @@ class BoidSystem:
                 if distance > 0:
                     steer.normalize_ip()  # In-place normalization
                     # Scale force by inverse distance (stronger when closer)
-                    force_magnitude = min(1.0 / (distance / 50), 0.5)
+                    force_magnitude = min(1.0 / (distance / 50), 0.5) * separation_weight
                     arrow.applyForce(steer * force_magnitude)
 
-    def applyGroupCenter(self) -> None:
+    def applyGroupCenter(self, cohesion_weight: float) -> None:
         for idx, arrow in enumerate(self.arrows):
             # Get all arrows in pov
             others = self.findArrowsInFov(arrow)
@@ -101,10 +106,10 @@ class BoidSystem:
             if distance > 0:
                 direction.normalize_ip()
                 # Scale force - stronger when further, but capped
-                force_magnitude = min(distance / 200, 0.3)
+                force_magnitude = min(distance / 200, 0.3) * cohesion_weight
                 arrow.applyForce(direction * force_magnitude)
 
-    def alignSteering(self):
+    def alignSteering(self, alignment_weight: float):
         for arrow in self.arrows:
             others = self.findArrowsInFov(arrow)
 
@@ -113,7 +118,7 @@ class BoidSystem:
                 average_direction = sum(directions, pygame.Vector2(0, 0))
                 if average_direction.length() > 0:
                     average_direction = average_direction.normalize()
-                    strength = 0.05
+                    strength = 0.05 * alignment_weight
                     arrow.applyForce(average_direction * strength)
 
     def findClosestInFov(

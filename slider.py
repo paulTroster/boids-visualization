@@ -47,3 +47,6 @@ class SliderWithLabel:
 
     def update_label(self):
         self.label.setText(str(self.slider.getValue()))
+
+    def get_value(self) -> float:
+        return float(self.slider.getValue())

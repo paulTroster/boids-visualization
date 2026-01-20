@@ -42,7 +42,14 @@ while running:
     # Get mouse position in order to let the arrows target it
     mouse_pos: tuple[int, int] = pygame.mouse.get_pos()
 
-    boidSystem.update(mouse_pos)
+    boidSystem.update(
+        mouse_pos,
+        params={
+            "alignment": alignment_slider.get_value(),
+            "cohesion": cohesion_slider.get_value(),
+            "separation": separation_slider.get_value(),
+        },
+    )
 
     pygame_widgets.update(events)
 
