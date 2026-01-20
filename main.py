@@ -1,8 +1,5 @@
 import pygame
-import random
-import math
 from boid import BoidSystem
-from arrow import Arrow
 
 # pygame setup
 pygame.init()
